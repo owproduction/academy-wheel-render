@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Академия - Рулетка Призов</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Основной контейнер -->
+    <main id="app-container">
+        
+        <!-- Секция Рулетки (скрыта изначально) -->
+        <section id="wheel-section" class="hidden">
+            <!-- Логотип над колесом для контекста -->
+            <div class="header-logo-small">
+                <img src="logo.png" alt="Логотип" onerror="this.style.display='none'">
+            </div>
+            
+            <h2 class="subtitle">Испытай удачу!</h2>
+            
+            <div class="wheel-wrapper">
+                <div class="pointer"></div>
+                
+                <!-- Само колесо -->
+                <svg viewBox="0 0 100 100" class="wheel-svg" id="wheel">
+                    <!-- Секторы генерируются JS -->
+                </svg>
+            </div>
+
+            <!-- Кнопка теперь внутри wrapper или сразу после него, центрируется через flexbox родителя -->
+            <button id="spin-btn" class="btn-spin">КРУТИТЬ</button>
+
+            <div id="result-display" class="hidden result-box">
+                <h3>Поздравляем! 🎉</h3>
+                <p id="winning-prize-text"></p>
+                <small>Покажите этот экран организатору.</small>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Модальное окно регистрации -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <!-- ЛОГОТИП В МОДАЛКЕ -->
+            <div class="modal-header">
+                <img src="logo.png" alt="Логотип Академии" class="modal-logo" onerror="this.parentElement.innerHTML='<span style=\'font-weight:bold;color:#6a0dad;\'>[ЛОГО]</span>'">
+            </div>
+            
+            <h2>Регистрация участника</h2>
+            <p class="modal-desc">Заполните данные, чтобы получить шанс выиграть приз.</p>
+            
+            <form id="registration-form">
+                <div class="input-group">
+                    <label for="name">Имя:</label>
+                    <input type="text" id="name" required placeholder="Ваше имя" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label for="age">Возраст:</label>
+                    <input type="number" id="age" min="5" max="99" required placeholder="Сколько лет?" inputmode="numeric">
+                </div>
+                <div class="input-group">
+                    <label for="phone">Телефон родителя:</label>
+                    <input type="text" id="phone" required placeholder="+7 999 ..." inputmode="tel" autocomplete="off">
+                    <small class="hint-text">Формат: +7..., 7... или 8...</small>
+                </div>
+                <button type="submit" id="submit-btn" class="btn-submit" disabled>ЗАРЕГИСТРИРОВАТЬСЯ</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
