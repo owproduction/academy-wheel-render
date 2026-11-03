@@ -68,11 +68,11 @@ async def submit_form(request: Request):
         return JSONResponse(status_code=500, content={"message": "Internal Server Error"})
 
 PRIZES = [
-    {"id": 1, "name": "Бесплатный мастер класс", "weight": 10},  
-    {"id": 2, "name": "Брелок", "weight": 30},                  
-    {"id": 3, "name": "Наклейки", "weight": 40},                
-    {"id": 4, "name": "3D стикер", "weight": 15},               
-    {"id": 5, "name": "Пробный урок барабаны", "weight": 5}     
+    {"id": 1, "name": "Бесплатный мастер класс", "weight": 60},  
+    {"id": 2, "name": "Брелок", "weight": 10},                  
+    {"id": 3, "name": "Наклейки", "weight": 10},                
+    {"id": 4, "name": "3D стикер", "weight": 10},               
+    {"id": 5, "name": "Пробный урок барабаны", "weight": 10}     
 ]
 
 @app.get("/api/spin")
