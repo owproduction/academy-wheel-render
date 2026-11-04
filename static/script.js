@@ -19,19 +19,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentRotation = 0;
     let hasSubmitted = false;
 
-    // МАССИВ ПРИЗОВ НА КЛИЕНТЕ
-    // ВАЖНО: Порядок должен соответствовать логике отрисовки.
-    // Но для определения выигрыша мы будем искать приз по ID, который вернет сервер.
+    // ОБНОВЛЕННЫЙ СПИСОК ПРИЗОВ
+    // 1. Изменено название последнего приза на "Секретный приз"
     const prizes = [
-        { id: 1, name: "Бесплатный мастер класс", color: "#E91E63" },   
-        { id: 2, name: "Брелок", color: "#9C27B0" },         
-        { id: 3, name: "Наклейки", color: "#673AB7" },       
-        { id: 4, name: "3D Стикер", color: "#3F51B5" },      
-        { id: 5, name: "Пробный урок барабаны", color: "#FF5722" }    
+        { id: 1, name: "Мастер класс", color: "#E91E63" },   // Розовый
+        { id: 2, name: "Брелок", color: "#9C27B0" },         // Фиолетовый
+        { id: 3, name: "Наклейки", color: "#673AB7" },       // Индиго
+        { id: 4, name: "3D Стикер", color: "#3F51B5" },      // Синий
+        { id: 5, name: "Секретный приз", color: "#FF5722" }  // Оранжевый (Было "Урок Барабан")
     ];
 
     // --- ИНИЦИАЛИЗАЦИЯ СКРЫТИЯ РЕЗУЛЬТАТА ---
-    // Убеждаемся, что блок результата точно скрыт при старте
     if (resultDisplay) {
         resultDisplay.style.display = 'none';
         resultDisplay.classList.add('hidden');
@@ -74,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let pathsHtml = '';
         
         prizes.forEach((prize, index) => {
-            // Индекс в массиве соответствует порядку рисования
             const startAngle = (index * sliceAngle) - 90; 
             const endAngle = ((index + 1) * sliceAngle) - 90;
             
@@ -96,11 +93,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Текст сектора
             const textAngle = startAngle + sliceAngle / 2;
-            const tx = cx + (r * 0.65) * Math.cos(textAngle * Math.PI / 180);
-            const ty = cy + (r * 0.65) * Math.sin(textAngle * Math.PI / 180);
+            // Позиционируем текст ближе к центру, чтобы не обрезался краями
+            const tx = cx + (r * 0.6) * Math.cos(textAngle * Math.PI / 180);
+            const ty = cy + (r * 0.6) * Math.sin(textAngle * Math.PI / 180);
             const rotation = textAngle + 90; 
             
-            pathsHtml += `<text x="${tx}" y="${ty}" fill="white" font-size="2.5" font-weight="bold" text-anchor="middle" dominant-baseline="middle" transform="rotate(${rotation} ${tx} ${ty})" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${prize.name}</text>`;
+            // ИЗМЕНЕНИЕ ЗДЕСЬ: font-size увеличен с 2.5 до 3.5
+            pathsHtml += `<text x="${tx}" y="${ty}" fill="white" font-size="3.5" font-weight="bold" text-anchor="middle" dominant-baseline="middle" transform="rotate(${rotation} ${tx} ${ty})" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${prize.name}</text>`;
         });
         
         wheelSvg.innerHTML = pathsHtml;
@@ -152,74 +151,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Логика вращения
     spinBtn.addEventListener('click', async () => {
-        // Защита: если уже крутится или результат уже показан
-        if (isSpinning || !hasSubmitted || resultDisplay.style.display !== 'none') {
-             // Если результат виден, значит уже крутили. Можно добавить сброс, но по ТЗ одно кручение.
-             return;
-        }
+        if (isSpinning || !hasSubmitted || resultDisplay.style.display !== 'none') return;
         
         isSpinning = true;
         spinBtn.disabled = true;
         spinBtn.textContent = "...";
 
         try {
-            // Запрашиваем результат у бэкенда
             const res = await fetch('/api/spin');
             const json = await res.json();
             
-            const serverPrizeId = json.prize_id; // Например, 2
+            const serverPrizeId = json.prize_id; 
             const serverPrizeName = json.prize_name;
 
-            // Находим индекс этого приза в нашем локальном массиве prizes
-            // Это критически важно для правильного расчета угла!
             const localIndex = prizes.findIndex(p => p.id === serverPrizeId);
             
             if (localIndex === -1) {
-                throw new Error("Приз с таким ID не найден на клиенте!");
+                throw new Error("Приз не найден!");
             }
 
             const sectorAngle = 360 / prizes.length;
-            
-            // Расчет угла остановки
-            // Сектор i занимает диапазон от (i * angle) до ((i+1) * angle).
-            // Его центр находится под углом: (i * angle) + (angle / 2).
-            // Чтобы стрелка (которая смотрит вниз, на 0 градусов относительно верха экрана? Нет, стрелка сверху указывает вниз на 12 часов).
-            // В нашей системе координат SVG:
-            // 0 градусов — это право (3 часа).
-            // -90 градусов — это верх (12 часов).
-            // Мы рисуем сектора начиная с -90.
-            // Сектор 0: от -90 до (-90 + 72). Центр: -90 + 36 = -54 градуса.
-            // Чтобы сектор оказался ПОД стрелкой (сверху), нам нужно повернуть колесо так, 
-            // чтобы центр сектора стал равен -90 градусам (позиции стрелки).
-            // Текущий угол центра сектора: StartAngle(i) + HalfSlice.
-            // Нам нужно применить поворот R, чтобы: CurrentCenter + R = TargetPosition (-90 deg).
-            // R = -90 - CurrentCenter.
-            
             const startAngleOfSector = (localIndex * sectorAngle) - 90;
             const centerAngleOfSector = startAngleOfSector + (sectorAngle / 2);
-            
-            // Целевой угол для стрелки (сверху)
             const targetArrowAngle = -90; 
             
-            // Необходимый поворот колеса
             const requiredRotation = targetArrowAngle - centerAngleOfSector;
-            
-            // Добавляем несколько полных оборотов для эффекта (например, 5 оборотов)
             const extraRotations = 360 * 5;
-            
-            // Итоговый абсолютный угол поворота элемента
-            // Учитываем текущую ротацию, чтобы колесо не прыгало назад
             const totalTargetRotation = currentRotation + extraRotations + requiredRotation;
-            
-            // Небольшой случайный джиттер внутри сектора (+/- 20 градусов), чтобы не останавливаться всегда в центре
-            const jitter = (Math.random() * 20) - 10;
+            const jitter = (Math.random() * 10) - 5; 
             const finalRotation = totalTargetRotation + jitter;
 
-            // Применяем анимацию
             wheelSvg.style.transform = `rotate(${finalRotation}deg)`;
             currentRotation = finalRotation;
 
-            // Ждем окончания CSS-анимации (4 секунды)
             setTimeout(() => {
                 showResult(serverPrizeName);
                 isSpinning = false;
@@ -236,12 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showResult(prizeName) {
         winningPrizeText.textContent = `Вы выиграли: ${prizeName}`;
-        
-        // Показываем блок
         resultDisplay.style.display = 'block';
         resultDisplay.classList.remove('hidden');
-        
-        // Опционально: скрываем кнопку крутить, чтобы нельзя было крутить второй раз
         spinBtn.style.visibility = 'hidden'; 
     }
 });
