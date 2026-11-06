@@ -18,15 +18,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let isSpinning = false;
     let currentRotation = 0;
     let hasSubmitted = false;
+    let currentUserPhone = ""; // Храним телефон текущего пользователя
 
     // ОБНОВЛЕННЫЙ СПИСОК ПРИЗОВ
-    // 1. Изменено название последнего приза на "Секретный приз"
     const prizes = [
         { id: 1, name: "Мастер класс", color: "#E91E63" },   // Розовый
         { id: 2, name: "Брелок", color: "#9C27B0" },         // Фиолетовый
         { id: 3, name: "Наклейки", color: "#673AB7" },       // Индиго
         { id: 4, name: "3D Стикер", color: "#3F51B5" },      // Синий
-        { id: 5, name: "Секретный приз", color: "#FF5722" }  // Оранжевый (Было "Урок Барабан")
+        { id: 5, name: "Секретный приз", color: "#FF5722" }  // Оранжевый
     ];
 
     // --- ИНИЦИАЛИЗАЦИЯ СКРЫТИЯ РЕЗУЛЬТАТА ---
@@ -93,12 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Текст сектора
             const textAngle = startAngle + sliceAngle / 2;
-            // Позиционируем текст ближе к центру, чтобы не обрезался краями
             const tx = cx + (r * 0.6) * Math.cos(textAngle * Math.PI / 180);
             const ty = cy + (r * 0.6) * Math.sin(textAngle * Math.PI / 180);
             const rotation = textAngle + 90; 
             
-            // ИЗМЕНЕНИЕ ЗДЕСЬ: font-size увеличен с 2.5 до 3.5
             pathsHtml += `<text x="${tx}" y="${ty}" fill="white" font-size="3.5" font-weight="bold" text-anchor="middle" dominant-baseline="middle" transform="rotate(${rotation} ${tx} ${ty})" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${prize.name}</text>`;
         });
         
@@ -121,6 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
             age: ageInput.value,
             phone: phoneInput.value.trim()
         };
+
+        // Сохраняем телефон в глобальную переменную для использования в /api/spin
+        currentUserPhone = data.phone;
 
         try {
             const response = await fetch('/api/submit', {
@@ -158,7 +159,8 @@ document.addEventListener('DOMContentLoaded', () => {
         spinBtn.textContent = "...";
 
         try {
-            const res = await fetch('/api/spin');
+            // Передаем телефон в параметрах URL!
+            const res = await fetch(`/api/spin?phone=${encodeURIComponent(currentUserPhone)}`);
             const json = await res.json();
             
             const serverPrizeId = json.prize_id; 
@@ -179,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const extraRotations = 360 * 5;
             const totalTargetRotation = currentRotation + extraRotations + requiredRotation;
             const jitter = (Math.random() * 10) - 5; 
-            const finalRotation = totalTargetRotation + jitter;
+            const finalRotation = totalRotation + jitter;
 
             wheelSvg.style.transform = `rotate(${finalRotation}deg)`;
             currentRotation = finalRotation;

@@ -5,8 +5,6 @@
     --bg-gradient: linear-gradient(135deg, var(--primary-purple), #2d0b5f);
     --text-light: #ffffff;
     --overlay-bg: rgba(20, 10, 40, 0.95);
-    
-    /* Адаптивные размеры колеса */
     --wheel-size-mobile: 85vw; 
     --wheel-size-desktop: 400px;
 }
@@ -26,7 +24,6 @@ body {
     touch-action: manipulation;
 }
 
-/* --- МОДАЛЬНОЕ ОКНО --- */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -139,7 +136,6 @@ body {
     opacity: 0.7;
 }
 
-/* --- РУЛЕТКА --- */
 #wheel-section {
     display: flex;
     flex-direction: column;
@@ -150,13 +146,12 @@ body {
     padding: 20px;
 }
 
-/* ИЗМЕНЕНИЕ ЗДЕСЬ: Размер логотипа увеличен */
 .header-logo-small {
     margin-bottom: 15px;
 }
 
 .header-logo-small img {
-    height: 80px; /* Было 40px, стало 80px */
+    height: 80px;
     width: auto;
     filter: brightness(0) invert(1);
     max-width: 200px;
